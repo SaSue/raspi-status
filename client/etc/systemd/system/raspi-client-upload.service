@@ -1,0 +1,7 @@
+# /etc/systemd/system/raspi-client-upload.service
+[Unit]
+Description=Upload Raspberry Pi Status
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/client-upload.sh
