@@ -26,7 +26,7 @@ DISK_PERCENT=$(df --output=pcent / | tail -1 | tr -dc '0-9')
 CERT_DAYS_LEFT=null
 
 # APT Update Check
-APT_UPDATES=$(apt list --upgradeable 2>/dev/null | grep -v "Listing" | wc -l)
+APT_UPDATES=$(apt list --upgradeable 2>/dev/null | grep -vE "Listing|Auflistung" | wc -l)
 SEC_UPDATES=$(apt list --upgradeable 2>/dev/null | grep security | wc -l)
 
 # Letzter erfolgreicher apt update
