@@ -1,0 +1,203 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Raspberry Pi Status Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif; font-size: 14px;
+      background: #f5f5f5;
+      margin: 20px;
+    }
+    .host {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    h2 {
+      margin-top: 0;
+    }
+    .status-green { color: green; font-weight: bold; }
+    .status-yellow { color: orange; font-weight: bold; }
+    .status-red { color: red; font-weight: bold; }
+    .metric { margin: 4px 0; }
+    .charts {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      margin-top: 16px;
+    }
+    .chart-box {
+      flex: 1 1 30%; max-width: 300px;
+      padding: 8px;
+      min-width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌐 Raspberry Pi Status Dashboard</h1>
+  <div id="summary" style="margin-bottom: 20px;"></div>
+  <div id="container"></div>
+
+<script>
+async function loadData() {
+
+  const summary = document.getElementById("summary");
+  summary.innerHTML = "";
+
+  let summaryHtml = "<h2>🔍 Übersicht:</h2><div style=\"display: flex; flex-wrap: wrap; gap: 10px;\">";
+
+  for (const host of hosts.sort()) {
+    const r = await fetch("/" + host);
+    const data = await r.json();
+
+    let status = "🟢";
+    if (data.security_updates > 0 || (data.cert_days_left !== null && data.cert_days_left <= 10) || data.reboot_required) {
+      status = "🔴";
+    } else if (data.apt_updates > 0 || (data.cert_days_left !== null && data.cert_days_left <= 30)) {
+      status = "🟡";
+    }
+
+    summaryHtml += `<div style=\"padding: 6px 12px; background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); font-weight: bold;\">${status} ${host}</div>`;
+  }
+
+  summaryHtml += "</div>";
+  summary.innerHTML = summaryHtml;
+
+  const res = await fetch("/list");
+  const hosts = await res.json();
+  const container = document.getElementById("container");
+  container.innerHTML = "";
+
+  
+let updateClass = "status-green";
+if (data.apt_updates > 0) updateClass = "status-yellow";
+if (data.security_updates > 0) updateClass = "status-red";
+
+const rebootClass = data.reboot_required ? "status-red" : "status-green";
+const rebootText = data.reboot_required ? "🔁 <b>Neustart erforderlich:</b> <span class=\"" + rebootClass + "\">Ja</span>" : "🔁 <b>Neustart erforderlich:</b> <span class=\"" + rebootClass + "\">Nein</span>";
+
+const uptimeMins = data.uptime_minutes || 0;
+const days = Math.floor(uptimeMins / 1440);
+const hours = Math.floor((uptimeMins % 1440) / 60);
+const minutes = uptimeMins % 60;
+const uptimeText = `🕒 <b>Uptime:</b> ${days}d ${hours}h ${minutes}min`;
+
+  for (const host of hosts.sort()) {
+    const r = await fetch("/" + host);
+    const data = await r.json();
+    const div = document.createElement("div");
+    div.className = "host";
+
+    const tempClass = data.temp >= 85 ? "status-red" : data.temp >= 75 ? "status-yellow" : "status-green";
+    const ramClass = data.ram_percent >= 90 ? "status-red" : data.ram_percent >= 75 ? "status-yellow" : "status-green";
+    const diskClass = data.disk_percent >= 90 ? "status-red" : data.disk_percent >= 75 ? "status-yellow" : "status-green";
+    const updateClass = data.apt_updates >= 15 ? "status-red" : data.apt_updates >= 5 ? "status-yellow" : "status-green";
+
+    const certClass = data.cert_days_left > 30 ? "status-green" : data.cert_days_left > 10 ? "status-yellow" : "status-red";
+const certRow = (data.cert_days_left !== null && data.cert_days_left > 0) ? `
+      <div class="metric">🔐 <b>Zertifikat:</b> <span class="${certClass}">${data.cert_days_left} Tage gültig</span></div>` : "";
+
+    const updatesRow = (data.apt_updates !== undefined) ? `
+      
+      <div class="metric">📦 <b>APT Updates:</b> <span class="${updateClass}">${data.apt_updates} verfügbar, 🔐 ${data.security_updates}</span></div>
+      <div class="metric">🕘 <b>Letztes apt update:</b> ${data.last_apt_update}</div>
+      <div class="metric">${rebootText}</div>
+      <div class="metric">${uptimeText}</div>
+` : "";
+
+    const ramPercent = data.ram_percent || 0;
+    const diskUsed = parseFloat(data.disk_used) || 0;
+    const diskFree = parseFloat(data.disk_total) - diskUsed;
+    const cpuLoad = Math.round((data.load / (data.cpu_cores || 1)) * 100);
+
+    const canvasRAM = `ramChart-${host}`;
+    const canvasDisk = `diskChart-${host}`;
+    const canvasCPU = `cpuChart-${host}`;
+
+    div.innerHTML = `
+      <h2>${data.host}</h2>
+      <div class="metric">🕓 <b>Letztes Update:</b> ${Math.floor((Date.now()/1000 - data.timestamp) / 60)} min ago</div>
+      <div class="metric">🌡️ <b>Temperatur:</b> <span class="${tempClass}">${data.temp} °C</span></div>
+      <div class="metric">🧠 <b>CPU-Kerne:</b> ${data.cpu_cores}</div>
+      <div class="metric">🖥️ <b>CPU-Last:</b> ${cpuLoad}%</div>
+      <div class="metric">🧠 <b>RAM:</b> <span class="${ramClass}">${data.ram_used} / ${data.ram_total} MB (${ramPercent}%)</span></div>
+      <div class="metric">💾 <b>Disk:</b> <span class="${diskClass}">${data.disk_used} / ${data.disk_total} GB (${data.disk_percent}%)</span></div>
+      ${updatesRow}
+      ${certRow}
+      <div class="charts">
+        <div class="chart-box"><canvas id="${canvasRAM}"></canvas></div>
+        <div class="chart-box"><canvas id="${canvasDisk}"></canvas></div>
+        <div class="chart-box"><canvas id="${canvasCPU}"></canvas></div>
+      </div>
+    `;
+    container.appendChild(div);
+
+    new Chart(document.getElementById(canvasRAM), {
+      type: 'bar',
+      data: {
+        labels: ['RAM %'],
+        datasets: [{
+          label: 'RAM-Auslastung',
+          data: [ramPercent],
+          backgroundColor: '#36a2eb'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100
+          }
+        }
+      }
+    });
+
+    new Chart(document.getElementById(canvasDisk), {
+      type: 'doughnut',
+      data: {
+        labels: ['Belegt', 'Frei'],
+        datasets: [{
+          label: 'Disk-Auslastung',
+          data: [diskUsed, diskFree],
+          backgroundColor: ['#f06292', '#e0e0e0']
+        }]
+      },
+      options: { responsive: true }
+    });
+
+    new Chart(document.getElementById(canvasCPU), {
+      type: 'bar',
+      data: {
+        labels: ['CPU %'],
+        datasets: [{
+          label: 'CPU-Auslastung',
+          data: [cpuLoad],
+          backgroundColor: '#8e5ea2'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100
+          }
+        }
+      }
+    });
+  }
+}
+
+loadData();
+setInterval(loadData, 60000);
+</script>
+</body>
+</html>
