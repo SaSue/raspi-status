@@ -46,6 +46,7 @@
 <script>
 async function loadData() {
   let updateClass, rebootClass, rebootText, uptimeMins, days, hours, minutes, uptimeText;
+    let summaryHtml = "<h2>🔍 Übersicht:</h2><div style='display: flex; flex-wrap: wrap; gap: 10px;'>";
   const res = await fetch("/list");
   const hosts = await res.json();
   const container = document.getElementById("container");
@@ -101,7 +102,7 @@ if (isRed) {
   status = "🟡";
 }
 
-    summaryHtml += `<a href="#${shortHost}" style="text-decoration: none;"><div style="display: block; cursor: pointer; padding: 6px 12px; background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); font-weight: bold;">${status} ${host}</div></a>`;
+    summaryHtml += `<a href="#${shortHost}" style="text-decoration: none;"><div style="display: block; cursor: pointer; padding: 6px 12px; background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); font-weight: bold;">${status} ${shortHost}</div></a>`;
   }
 
   summaryHtml += "</div>";
