@@ -46,6 +46,7 @@
 <script>
 async function loadData() {
   let updateClass, rebootClass, rebootText, uptimeMins, days, hours, minutes, uptimeText;
+  let summaryHtml = "<h2>🔍 Übersicht:</h2><div style='display: flex; flex-wrap: wrap; gap: 10px;'>";
   const res = await fetch("/list");
   const hosts = await res.json();
   const container = document.getElementById("container");
