@@ -45,13 +45,24 @@
 
 <script>
 async function loadData() {
-  let updateClass, rebootClass, rebootText, uptimeMins, days, hours, minutes, uptimeText, summaryHtml;
+  let updateClass, rebootClass, rebootText, uptimeMins, days, hours, minutes, uptimeText;
   const res = await fetch("/list");
   const hosts = await res.json();
   const container = document.getElementById("container");
-summaryHtml = "<h2>🔍 Übersicht:</h2><div style=\"display: flex; flex-wrap: wrap; gap: 10px;\">";
+
 
   container.innerHTML = "";
+
+  
+
+
+  
+
+
+
+
+  
+  
 
   for (const host of hosts.sort()) {
     const r = await fetch("/" + host);
@@ -72,7 +83,7 @@ summaryHtml = "<h2>🔍 Übersicht:</h2><div style=\"display: flex; flex-wrap: w
     uptimeText = `🕒 <b>Uptime:</b> ${days}d ${hours}h ${minutes}min`;
 
 
-let status = "🟢";
+    let status = "🟢";
 
 const isRed =
   data.security_updates > 0 ||
@@ -88,11 +99,19 @@ if (isRed) {
 } else if (isYellow) {
   status = "🟡";
 }
+
     summaryHtml += `<div style=\"padding: 6px 12px; background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); font-weight: bold;\">${status} ${host}</div>`;
   }
 
   summaryHtml += "</div>";
   summary.innerHTML = summaryHtml;
+
+
+  
+    
+
+  
+  
 
   for (const host of hosts.sort()) {
     const r = await fetch("/" + host);
@@ -160,15 +179,23 @@ const certRow = (data.cert_days_left !== null && data.cert_days_left > 0) ? `
     `;
     
     let status = "🟢";
-    if (data.security_updates > 0 || (data.cert_days_left !== null && data.cert_days_left <= 10) || data.reboot_required) {
-      status = "🔴";
-    } else if (data.apt_updates > 0 || (data.cert_days_left !== null && data.cert_days_left <= 30)) {
-      status = "🟡";
-    }
 
-    summaryHtml += `<div style=\"padding: 6px 12px; background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); font-weight: bold;\">${status} ${host}</div>`;
+const isRed =
+  data.security_updates > 0 ||
+  (data.cert_days_left !== null && data.cert_days_left <= 10) ||
+  data.reboot_required;
 
-    summary.innerHTML = summaryHtml + "</div>";
+const isYellow =
+  data.apt_updates > 0 ||
+  (data.cert_days_left !== null && data.cert_days_left <= 30);
+
+if (isRed) {
+  status = "🔴";
+} else if (isYellow) {
+  status = "🟡";
+}
+
+    
     container.appendChild(div);
 
     new Chart(document.getElementById(canvasRAM), {
