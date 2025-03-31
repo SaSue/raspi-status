@@ -91,9 +91,6 @@ cat <<EOF > "$OUTPUT"
 }
 EOF
 
-
-
-
 # Upload an deinen Server
 LIVE_UPLOAD_URL="https://status.intranet.suechting.com/upload/${HOSTNAME}.json"
 curl -X POST -H "Content-Type: application/json" --data-binary "@$OUTPUT" "$LIVE_UPLOAD_URL"
