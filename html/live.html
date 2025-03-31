@@ -72,13 +72,22 @@ summaryHtml = "<h2>🔍 Übersicht:</h2><div style=\"display: flex; flex-wrap: w
     uptimeText = `🕒 <b>Uptime:</b> ${days}d ${hours}h ${minutes}min`;
 
 
-    let status = "🟢";
-    if (data.security_updates > 0 || (data.cert_days_left !== null && data.cert_days_left <= 10) || data.reboot_required) {
-      status = "🔴";
-    } else if (data.apt_updates > 0 || (data.cert_days_left !== null && data.cert_days_left <= 30)) {
-      status = "🟡";
-    }
+let status = "🟢";
 
+const isRed =
+  data.security_updates > 0 ||
+  (data.cert_days_left !== null && data.cert_days_left <= 10) ||
+  data.reboot_required;
+
+const isYellow =
+  data.apt_updates > 0 ||
+  (data.cert_days_left !== null && data.cert_days_left <= 30);
+
+if (isRed) {
+  status = "🔴";
+} else if (isYellow) {
+  status = "🟡";
+}
     summaryHtml += `<div style=\"padding: 6px 12px; background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); font-weight: bold;\">${status} ${host}</div>`;
   }
 
