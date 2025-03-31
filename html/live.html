@@ -39,7 +39,7 @@
   </style>
 </head>
 <body>
-  <h1>🌐 Raspberry Pi Status Dashboard V0.0.1</h1>
+  <h1>🌐 Raspberry Pi Status Dashboard</h1>
   <div id="summary" style="margin-bottom: 20px;"></div>
   <div id="container"></div>
 
@@ -93,13 +93,6 @@ if (isRed) {
 
   summaryHtml += "</div>";
   summary.innerHTML = summaryHtml;
-
-
-  
-    
-
-  
-  
 
   for (const host of hosts.sort()) {
     const r = await fetch("/" + host);
