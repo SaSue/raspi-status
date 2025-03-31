@@ -45,13 +45,24 @@
 
 <script>
 async function loadData() {
-  let updateClass, rebootClass, rebootText, uptimeMins, days, hours, minutes, uptimeText, summaryHtml;
+  let updateClass, rebootClass, rebootText, uptimeMins, days, hours, minutes, uptimeText summaryHtml;
   const res = await fetch("/list");
   const hosts = await res.json();
   const container = document.getElementById("container");
 
 
   container.innerHTML = "";
+
+  
+
+
+  
+
+
+
+
+  
+  
 
   for (const host of hosts.sort()) {
     const r = await fetch("/" + host);
@@ -116,7 +127,8 @@ async function loadData() {
     const tempClass = data.temp >= 85 ? "status-red" : data.temp >= 75 ? "status-yellow" : "status-green";
     const ramClass = data.ram_percent >= 90 ? "status-red" : data.ram_percent >= 75 ? "status-yellow" : "status-green";
     const diskClass = data.disk_percent >= 90 ? "status-red" : data.disk_percent >= 75 ? "status-yellow" : "status-green";
-    updateClass = data.apt_updates >= 15 ? "status-red" : data.apt_updates >= 5 ? "status-yellow" : "status-green";
+    updateClass = data.apt_updates > 0 ? "status-yellow" : "status-green";
+    if (data.security_updates > 0) updateClass = "status-red";
 
     const certClass = data.cert_days_left > 30 ? "status-green" : data.cert_days_left > 10 ? "status-yellow" : "status-red";
 const certRow = (data.cert_days_left !== null && data.cert_days_left > 0) ? `
