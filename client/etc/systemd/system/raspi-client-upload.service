@@ -4,4 +4,4 @@ Description=Upload Raspberry Pi Status
 
 [Service]
 Type=oneshot
-ExecStart=/opt/raspi-status/client/client-upload.sh
+ExecStart=/opt/raspi-status/client/client-status-update.sh
