@@ -136,7 +136,6 @@ if (isRed) {
 
     const div = document.createElement("div");
     div.className = "host";
-    const shortHost = data.host.replace(/\.json$/, "");
     div.id = shortHost;
 
     const tempClass = data.temp >= 85 ? "status-red" : data.temp >= 75 ? "status-yellow" : "status-green";
