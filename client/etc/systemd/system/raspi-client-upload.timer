@@ -1,0 +1,11 @@
+# /etc/systemd/system/raspi-client-upload.timer
+[Unit]
+Description=Upload Raspberry Pi Status alle 5 Minuten
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=5min
+Unit=raspi-client-upload.service
+
+[Install]
+WantedBy=timers.target
