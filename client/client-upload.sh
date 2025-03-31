@@ -3,11 +3,9 @@
 HOSTNAME=$(hostname)
 TIMESTAMP=$(date +%s)
 
-export LC_ALL=C
-
 # CPU Temperatur
-TEMP=$(</sys/class/thermal/thermal_zone0/temp)
-TEMP_C=$(awk "BEGIN {printf \"%.1f\", $TEMP/1000}")
+TEMP_C=$(cat /sys/class/thermal/thermal_zone0/temp)
+TEMP_C=${TEMP_C:: -3}
 
 # Load & Cores
 LOAD=$(awk '{print $1}' /proc/loadavg)
@@ -31,11 +29,11 @@ CERT_DAYS_LEFT=null
 APT_UPDATES=$(apt list --upgradeable 2>/dev/null | grep -v "Listing" | wc -l)
 SEC_UPDATES=$(apt list --upgradeable 2>/dev/null | grep security | wc -l)
 
-# Letzter erfolgreicher apt update (falls vorhanden)
+# Letzter erfolgreicher apt update
 APT_UPDATE_DATE=""
-STAMP_FILE="/var/lib/apt/periodic/update-success-stamp"
-if [ -f "$STAMP_FILE" ]; then
-  APT_UPDATE_DATE=$(date -r "$STAMP_FILE" +"%Y-%m-%d %H:%M:%S")
+APT_MARKER="/tmp/apt-last-update"
+if [ -f "$APT_MARKER" ]; then
+  APT_UPDATE_DATE=$(date -r "$APT_MARKER" +"%Y-%m-%d %H:%M:%S")
 fi
 
 # Einmal pro Stunde apt update ausführen
@@ -76,9 +74,14 @@ cat <<EOF > "$OUTPUT"
   "cert_days_left": $CERT_DAYS_LEFT,
   "apt_updates": $APT_UPDATES,
   "security_updates": $SEC_UPDATES,
-  "last_apt_update": "$APT_UPDATE_DATE"
+  "last_apt_update": "$APT_UPDATE_DATE",
+  "uptime_minutes": $UPTIME_MIN
 }
 EOF
+
+
+# System-Uptime (in Minuten)
+UPTIME_MIN=$(awk '{print int($1/60)}' /proc/uptime)
 
 # Upload an deinen Server
 LIVE_UPLOAD_URL="https://status.intranet.suechting.com/upload/${HOSTNAME}.json"
