@@ -54,6 +54,10 @@ if [ "$DO_UPDATE" = true ]; then
   echo $NOW > "$APT_MARKER"
 fi
 
+# System-Uptime (in Minuten)
+UPTIME_RAW=$(cut -d. -f1 /proc/uptime)
+UPTIME_MIN=$((UPTIME_RAW / 60))
+
 # Output-Datei
 OUTPUT="/tmp/${HOSTNAME}_status.json"
 
@@ -78,11 +82,6 @@ cat <<EOF > "$OUTPUT"
   "uptime_minutes": $UPTIME_MIN
 }
 EOF
-
-
-# System-Uptime (in Minuten)
-UPTIME_RAW=$(cut -d. -f1 /proc/uptime)
-UPTIME_MIN=$((UPTIME_RAW / 60))
 
 # Upload an deinen Server
 LIVE_UPLOAD_URL="https://status.intranet.suechting.com/upload/${HOSTNAME}.json"
