@@ -58,6 +58,13 @@ fi
 UPTIME_RAW=$(cut -d. -f1 /proc/uptime)
 UPTIME_MIN=$((UPTIME_RAW / 60))
 
+
+# Neustart erforderlich?
+if [ -f /var/run/reboot-required ]; then
+  REBOOT_REQUIRED=true
+else
+  REBOOT_REQUIRED=false
+fi
 # Output-Datei
 OUTPUT="/tmp/${HOSTNAME}_status.json"
 
@@ -79,9 +86,13 @@ cat <<EOF > "$OUTPUT"
   "apt_updates": $APT_UPDATES,
   "security_updates": $SEC_UPDATES,
   "last_apt_update": "$APT_UPDATE_DATE",
-  "uptime_minutes": $UPTIME_MIN
+  "uptime_minutes": $UPTIME_MIN,
+  "reboot_required": $REBOOT_REQUIRED
 }
 EOF
+
+
+
 
 # Upload an deinen Server
 LIVE_UPLOAD_URL="https://status.intranet.suechting.com/upload/${HOSTNAME}.json"
