@@ -81,7 +81,7 @@ EOF
 
 
 # System-Uptime (in Minuten)
-PTIME_RAW=$(cut -d. -f1 /proc/uptime)
+UPTIME_RAW=$(cut -d. -f1 /proc/uptime)
 UPTIME_MIN=$((UPTIME_RAW / 60))
 
 # Upload an deinen Server
