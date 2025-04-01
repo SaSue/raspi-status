@@ -1,0 +1,122 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Raspberry Pi Zeitreihen-Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 20px;
+      background: #f9f9f9;
+    }
+    .host-box {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: white;
+      margin: 10px 0;
+      padding: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .chart-container {
+      margin-top: 10px;
+      overflow-x: auto;
+    }
+    canvas {
+      max-width: 100%;
+    }
+    h2 {
+      margin-bottom: 0;
+    }
+    pre {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <h1>📊 Raspberry Pi Zeitreihen-Dashboard</h1>
+  <div id="hosts"></div>
+
+<script>
+async function fetchHosts() {
+  const res = await fetch("/list");
+  const files = await res.json();
+  return files.sort();
+}
+
+function formatTime(ts) {
+  const d = new Date(ts * 1000);
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function renderLineChart(canvasId, label, dataPoints, borderColor) {
+  const labels = dataPoints.map(e => formatTime(e.timestamp));
+  const values = dataPoints.map(e => e.value);
+
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const avg = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1);
+
+  const labelWithStats = `${label} (Ø ${avg}, ⬆ ${max}, ⬇ ${min})`;
+
+  new Chart(document.getElementById(canvasId), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: labelWithStats,
+        data: values,
+        fill: false,
+        borderColor,
+        tension: 0.1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+fetchHosts().then(files => {
+  files.forEach(file => {
+    const host = file.replace(".json", "");
+    fetch(`/history/${host}.json`)
+      .then(res => res.json())
+      .then(history => {
+        if (!history || history.length === 0) return;
+
+        const container = document.getElementById("hosts");
+        const box = document.createElement("div");
+        box.className = "host-box";
+        box.innerHTML = `
+          <h2>${host}</h2>
+          <div class="chart-container" style="height:220px">
+            <canvas id="tempChart-${host}"></canvas>
+          </div>
+          <div class="chart-container" style="height:220px">
+            <canvas id="cpuChart-${host}"></canvas>
+          </div>
+          <div class="chart-container" style="height:220px">
+            <canvas id="ramChart-${host}"></canvas>
+          </div>
+        `;
+        container.appendChild(box);
+
+        renderLineChart(`tempChart-${host}`, "🌡 Temperatur (°C)", history.map(e => ({ timestamp: e.timestamp, value: e.temp })), "#f39c12");
+        renderLineChart(`cpuChart-${host}`, "💻 CPU-Auslastung (%)", history.map(e => {
+          const percent = Math.round((e.load / (e.cpu_cores || 1)) * 100);
+          return { timestamp: e.timestamp, value: percent };
+        }), "#8e5ea2");
+        renderLineChart(`ramChart-${host}`, "🧠 RAM-Auslastung (%)", history.map(e => ({ timestamp: e.timestamp, value: e.ram_percent })), "#36a2eb");
+      });
+  });
+});
+</script>
+</body>
+</html>
+
