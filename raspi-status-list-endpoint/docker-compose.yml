@@ -3,7 +3,7 @@ version: "3.8"
 services:
   list-server:
     build: .
-    container_name: raspi-list-server
+    container_name: raspi-status-list-server
     ports:
       - "9092"
     volumes:
