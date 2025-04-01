@@ -1,1 +1,17 @@
+version: "3.8"
 
+services:
+  upload-server:
+    build: .
+    container_name: raspi-upload-combined
+    ports:
+      - "9091"
+    volumes:
+      - /usr/share/nginx/html:/usr/share/nginx/html
+    restart: unless-stopped
+    networks:
+      - internal-net
+
+networks:
+  internal-net:
+    external: true
