@@ -24,6 +24,18 @@ DISK_PERCENT=$(df --output=pcent / | tail -1 | tr -dc '0-9')
 
 # Certbot-Tage (optional)
 CERT_DAYS_LEFT=null
+# Zertifikatsprüfung (optional)
+CERT_PATH="/opt/letsencrypt/cert/live/intranet.suechting.com/fullchain.pem"
+if [ -f "$CERT_PATH" ]; then
+    EXPIRY_DATE=$(openssl x509 -enddate -noout -in "$CERT_PATH" | cut -d= -f2)
+    EXPIRY_TIMESTAMP=$(date -d "$EXPIRY_DATE" +%s)
+    NOW_TIMESTAMP=$(date +%s)
+    DAYS_LEFT=$(( (EXPIRY_TIMESTAMP - NOW_TIMESTAMP) / 86400 ))
+    CERT_LINE="  \"cert_days_left\": $DAYS_LEFT,"
+else
+    CERT_LINE=""
+fi
+
 
 # APT Update Check
 APT_UPDATES=$(apt list --upgradeable 2>/dev/null | grep -vE "Listing|Auflistung" | wc -l)
