@@ -3,7 +3,7 @@ version: "3.8"
 services:
   upload-server:
     build: .
-    container_name: raspi-upload-combined
+    container_name: raspi-status-upload-server
     ports:
       - "9091"
     volumes:
