@@ -30,7 +30,7 @@ if [ -f "$CERT_PATH" ]; then
     EXPIRY_DATE=$(openssl x509 -enddate -noout -in "$CERT_PATH" | cut -d= -f2)
     EXPIRY_TIMESTAMP=$(date -d "$EXPIRY_DATE" +%s)
     NOW_TIMESTAMP=$(date +%s)
-    DAYS_LEFT=$(( (EXPIRY_TIMESTAMP - NOW_TIMESTAMP) / 86400 ))
+    CERT_DAYS_LEFT=$(( (EXPIRY_TIMESTAMP - NOW_TIMESTAMP) / 86400 ))
     CERT_LINE="  \"cert_days_left\": $DAYS_LEFT,"
 else
     CERT_LINE=""
